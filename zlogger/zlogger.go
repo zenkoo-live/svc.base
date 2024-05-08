@@ -18,14 +18,13 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"time"
 
 	"go-micro.dev/v4/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type zaplog struct {
+type Zaplog struct {
 	cfg  zap.Config
 	zap  *zap.Logger
 	opts logger.Options
@@ -40,29 +39,31 @@ const (
 
 var (
 	_defaultEncoderConfig = zapcore.EncoderConfig{
-		MessageKey:    "msg",
-		LevelKey:      "level",
-		TimeKey:       "time",
-		NameKey:       "name",
-		CallerKey:     "caller",
-		FunctionKey:   "function",
-		StacktraceKey: "stack",
-		LineEnding:    "",
-		EncodeLevel:   zapcore.LowercaseLevelEncoder,
-		//EncodeTime:       zapcore.RFC3339NanoTimeEncoder,
-		EncodeTime:       customTimeEncoder,
+		MessageKey:       "msg",
+		LevelKey:         "level",
+		TimeKey:          "ts",
+		NameKey:          "name",
+		CallerKey:        "caller",
+		FunctionKey:      "func",
+		StacktraceKey:    "stack",
+		LineEnding:       "",
+		EncodeLevel:      zapcore.LowercaseLevelEncoder,
+		EncodeTime:       zapcore.RFC3339NanoTimeEncoder,
 		EncodeDuration:   zapcore.StringDurationEncoder,
 		EncodeCaller:     zapcore.ShortCallerEncoder,
 		EncodeName:       zapcore.FullNameEncoder,
 		ConsoleSeparator: "",
+		//EncodeTime:       customTimeEncoder,
 	}
 )
 
+/*
 func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 }
+*/
 
-func (l *zaplog) Init(opts ...logger.Option) error {
+func (l *Zaplog) Init(opts ...logger.Option) error {
 	var (
 		err   error
 		cores []zapcore.Core
@@ -217,7 +218,7 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 	return nil
 }
 
-func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
+func (l *Zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	l.Lock()
 	nfields := make(map[string]interface{}, len(l.fields))
 	for k, v := range l.fields {
@@ -233,7 +234,7 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 		data = append(data, zap.Any(k, v))
 	}
 
-	zl := &zaplog{
+	zl := &Zaplog{
 		cfg:    l.cfg,
 		zap:    l.zap.With(data...),
 		opts:   l.opts,
@@ -243,11 +244,11 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	return zl
 }
 
-func (l *zaplog) Error(err error) logger.Logger {
+func (l *Zaplog) Error(err error) logger.Logger {
 	return l.Fields(map[string]interface{}{"error": err})
 }
 
-func (l *zaplog) Log(level logger.Level, args ...interface{}) {
+func (l *Zaplog) Log(level logger.Level, args ...interface{}) {
 	l.RLock()
 	data := make([]zap.Field, 0, len(l.fields))
 	for k, v := range l.fields {
@@ -274,7 +275,7 @@ func (l *zaplog) Log(level logger.Level, args ...interface{}) {
 	}
 }
 
-func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
+func (l *Zaplog) Logf(level logger.Level, format string, args ...interface{}) {
 	l.RLock()
 	data := make([]zap.Field, 0, len(l.fields))
 	for k, v := range l.fields {
@@ -301,7 +302,7 @@ func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
 	}
 }
 
-func (l *zaplog) trace(msg string, fields ...zapcore.Field) {
+func (l *Zaplog) trace(msg string, fields ...zapcore.Field) {
 	// Output directly
 	ce := l.zap.Check(TraceLevel, msg)
 	if ce != nil {
@@ -309,16 +310,20 @@ func (l *zaplog) trace(msg string, fields ...zapcore.Field) {
 	}
 }
 
-func (l *zaplog) String() string {
+func (l *Zaplog) String() string {
 	return "zlogger"
 }
 
-func (l *zaplog) Options() logger.Options {
+func (l *Zaplog) Options() logger.Options {
 	return l.opts
 }
 
+func (l *Zaplog) Zap() *zap.Logger {
+	return l.zap
+}
+
 // NewLogger builds a new logger based on options
-func NewLogger(opts ...logger.Option) (logger.Logger, error) {
+func NewLogger(opts ...logger.Option) (*Zaplog, error) {
 	// Default options
 	options := logger.Options{
 		Level:   logger.InfoLevel,
@@ -327,7 +332,7 @@ func NewLogger(opts ...logger.Option) (logger.Logger, error) {
 		Context: context.Background(),
 	}
 
-	l := &zaplog{opts: options}
+	l := &Zaplog{opts: options}
 	if err := l.Init(opts...); err != nil {
 		return nil, err
 	}

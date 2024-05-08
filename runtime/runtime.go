@@ -15,7 +15,9 @@ package runtime
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	brkKafka "github.com/go-micro/plugins/v4/broker/kafka"
@@ -25,6 +27,7 @@ import (
 	srcConsul "github.com/go-micro/plugins/v4/config/source/consul"
 	rgConsul "github.com/go-micro/plugins/v4/registry/consul"
 	rgEtcd "github.com/go-micro/plugins/v4/registry/etcd"
+	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -42,14 +45,16 @@ import (
 	srcFile "go-micro.dev/v4/config/source/file"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
+	"go.uber.org/zap"
 )
 
 var (
-	rg  registry.Registry
-	brk broker.Broker
-	ch  cache.Cache
-	db  *bun.DB
-	fb  *fiber.App
+	rg        registry.Registry
+	brk       broker.Broker
+	ch        cache.Cache
+	db        *bun.DB
+	fb        *fiber.App
+	zaplogger *zlogger.Zaplog
 )
 
 func Init() error {
@@ -109,8 +114,8 @@ func Init() error {
 		}
 	}
 
-	zapLogger, _ := zlogger.NewLogger(loggerOpts...)
-	logger.DefaultLogger = zapLogger
+	zaplogger, _ = zlogger.NewLogger(loggerOpts...)
+	logger.DefaultLogger = zaplogger
 
 	// Registry
 	if cfg.Registry != nil {
@@ -291,6 +296,8 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 		return nil, errors.New("empty configuration")
 	}
 
+	b, _ := json.MarshalIndent(cfg, "", "  ")
+	fmt.Println(string(b))
 	fc := fiber.Config{
 		Prefork:               false,
 		DisableStartupMessage: true,
@@ -319,17 +326,22 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 
 	tfb.Use(
 		cors.New(),
+		fiberzap.New(
+			fiberzap.Config{
+				Logger: zaplogger.Zap(),
+			},
+		),
 	)
 
 	if cfg.EnableSwagger {
-		tfb.All("/docs", swagger.New(swagger.ConfigDefault))
+		tfb.All("/docs/*", swagger.New(swagger.ConfigDefault))
 	}
 
 	go func() error {
-		logger.Infof("fiber listening <%s>", cfg.Address)
+		logger.Infof("fiber listening on %s", cfg.Address)
 		err := tfb.Listen(cfg.Address)
 		if err != nil {
-			logger.Errorf("fiber listen failed <%s> : %s", cfg.Address, err.Error())
+			logger.Errorf("fiber listen failed on %s : %s", cfg.Address, err.Error())
 
 			return err
 		}
@@ -360,6 +372,14 @@ func DB() *bun.DB {
 
 func Fiber() *fiber.App {
 	return fb
+}
+
+func Logger() logger.Logger {
+	return zaplogger
+}
+
+func Zap() *zap.Logger {
+	return zaplogger.Zap()
 }
 
 /*

@@ -245,8 +245,8 @@ func (r *RollingFile) roll() error {
 
 /* }}} */
 
-/* {{{ [createSymLink] */
-func (r *RollingFile) createSymLink(real, sym string) {
+/* {{{ [CreateSymLink] */
+func (r *RollingFile) CreateSymLink(real, sym string) {
 	if _, err := os.Lstat(sym); err == nil {
 		os.Remove(sym)
 	}
