@@ -29,6 +29,7 @@ const (
 	DefaultBrokerDriver   = "nats"
 	DefaultCacheDriver    = "redis"
 
+	DefaultHTTPAdvertiseAddr = ":9990"
 	DefaultGRPCAdvertiseAddr = ":9991"
 )
 

@@ -52,6 +52,7 @@ var (
 	ch        cache.Cache
 	db        *bun.DB
 	fb        *fiber.App
+	fbAddress string
 	zaplogger *zlogger.Zaplog
 )
 
@@ -333,19 +334,11 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 		tfb.All("/docs/*", swagger.New(swagger.ConfigDefault))
 	}
 
-	go func() error {
-		logger.Infof("fiber listening on %s", cfg.Address)
-		err := tfb.Listen(cfg.Address)
-		if err != nil {
-			logger.Errorf("fiber listen failed on %s : %s", cfg.Address, err.Error())
-
-			return err
-		}
-
-		logger.Infof("fiber shutting down")
-
-		return nil
-	}()
+	if cfg.Address != "" {
+		fbAddress = cfg.Address
+	} else {
+		fbAddress = DefaultHTTPAdvertiseAddr
+	}
 
 	return tfb, nil
 }
@@ -376,6 +369,29 @@ func Logger() logger.Logger {
 
 func Zap() *zap.Logger {
 	return zaplogger.Zap()
+}
+
+func StartHTTP() {
+	if fb != nil {
+		go func() {
+			logger.Infof("fiber listening on %s", fbAddress)
+			err := fb.Listen(fbAddress)
+			if err != nil {
+				logger.Errorf("fiber listen failed on %s : %s", fbAddress, err.Error())
+
+				return
+			}
+
+			logger.Infof("fiber closed")
+		}()
+	}
+}
+
+func StopHTTP() {
+	if fb != nil {
+		logger.Info("stopping fiber server")
+		fb.Shutdown()
+	}
 }
 
 /*
