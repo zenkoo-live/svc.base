@@ -15,9 +15,7 @@ package runtime
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	brkKafka "github.com/go-micro/plugins/v4/broker/kafka"
@@ -296,8 +294,6 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 		return nil, errors.New("empty configuration")
 	}
 
-	b, _ := json.MarshalIndent(cfg, "", "  ")
-	fmt.Println(string(b))
 	fc := fiber.Config{
 		Prefork:               false,
 		DisableStartupMessage: true,
