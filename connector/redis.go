@@ -62,7 +62,7 @@ func (c *redisConnector) reInit() error {
 	if err := c.init(&option); err != nil {
 		return fmt.Errorf("init redis connector error: %s", err.Error())
 	}
-	logger.Debugf("redis connect to: %v", option)
+	logger.Infof("redis connect to: %v", option)
 
 	return nil
 }
