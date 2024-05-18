@@ -14,6 +14,7 @@
 package runtime
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"strings"
@@ -30,6 +31,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
+	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/mssqldialect"
 	"github.com/uptrace/bun/dialect/mysqldialect"
@@ -43,6 +45,8 @@ import (
 	srcFile "go-micro.dev/v4/config/source/file"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -51,6 +55,8 @@ var (
 	brk       broker.Broker
 	ch        cache.Cache
 	db        *bun.DB
+	mdb       *mongo.Client
+	rdb       *redis.Client
 	fb        *fiber.App
 	fbAddress string
 	zaplogger *zlogger.Zaplog
@@ -160,6 +166,22 @@ func Init() error {
 		}
 	}
 
+	// Mongo
+	if cfg.Mongo != nil {
+		mdb, err = initMongo(cfg.Mongo)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		}
+	}
+
+	// Redis
+	if cfg.Redis != nil {
+		rdb, err = initRedis(cfg.Redis)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		}
+	}
+
 	// Fiber
 	if cfg.Fiber != nil {
 		fb, err = initFiber(cfg.Fiber)
@@ -191,6 +213,8 @@ func initRegistry(cfg *configRegistry) (registry.Registry, error) {
 		)
 	}
 
+	logger.Infof("registry <%s> initialized", cfg.Driver)
+
 	return trg, nil
 }
 
@@ -218,6 +242,8 @@ func initBroker(cfg *configBroker) (broker.Broker, error) {
 		)
 	}
 
+	logger.Infof("broker <%s> initialized", cfg.Driver)
+
 	return tbrk, nil
 }
 
@@ -236,6 +262,8 @@ func initCache(cfg *configCache) (cache.Cache, error) {
 			cache.WithAddress(cfg.Address),
 		)
 	}
+
+	logger.Infof("cache <%s> initialized", cfg.Driver)
 
 	return tch, nil
 }
@@ -286,6 +314,55 @@ func initDatabase(cfg *configDatabase) (*bun.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Infof("database <%s> initialized", cfg.Driver)
+
+	return tdb, nil
+}
+
+func initMongo(cfg *configMongo) (*mongo.Client, error) {
+	if cfg == nil {
+		return nil, errors.New("empty configuration")
+	}
+
+	var (
+		err error
+		tdb *mongo.Client
+	)
+
+	tdb, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(cfg.DSN))
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infof("mongodb initialized")
+
+	return tdb, nil
+}
+
+func initRedis(cfg *configRedis) (*redis.Client, error) {
+	if cfg == nil {
+		return nil, errors.New("empty configuration")
+	}
+
+	var (
+		err error
+		tdb *redis.Client
+	)
+
+	tdb = redis.NewClient(&redis.Options{
+		Addr:       cfg.Address,
+		Password:   cfg.Password,
+		DB:         cfg.DB,
+		PoolSize:   cfg.PoolSize,
+		MaxRetries: cfg.MaxRetries,
+	})
+	_, err = tdb.Ping(context.TODO()).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infof("redis initialized")
 
 	return tdb, nil
 }
@@ -357,6 +434,14 @@ func Cache() cache.Cache {
 
 func DB() *bun.DB {
 	return db
+}
+
+func Mongo() *mongo.Client {
+	return mdb
+}
+
+func Redis() *redis.Client {
+	return rdb
 }
 
 func Fiber() *fiber.App {

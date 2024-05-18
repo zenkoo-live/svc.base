@@ -74,11 +74,25 @@ type configLogger struct {
 	BasePath    string `json:"base_path" mapstructure:"base_path"`
 }
 
+type configMongo struct {
+	DSN string `json:"dsn" mapstructure:"dsn"`
+}
+
+type configRedis struct {
+	Address    string `json:"address" mapstructure:"address"`
+	Password   string `json:"password" mapstructure:"password"`
+	PoolSize   int    `json:"pool_size" mapstructure:"pool_size"`
+	MaxRetries int    `json:"max_retries" mapstructure:"max_retries"`
+	DB         int    `json:"db" mapstructure:"db"`
+}
+
 type Config struct {
 	Registry *configRegistry `json:"registry" mapstructure:"registry"`
 	Broker   *configBroker   `json:"broker" mapstructure:"broker"`
 	Cache    *configCache    `json:"cache" mapstructure:"cache"`
 	Database *configDatabase `json:"database" mapstructure:"database"`
+	Mongo    *configMongo    `json:"mongo" mapstructure:"mongo"`
+	Redis    *configRedis    `json:"redis" mapstructure:"redis"`
 	Fiber    *configFiber    `json:"fiber" mapstructure:"fiber"`
 	Logger   *configLogger   `json:"logger" mapstructure:"logger"`
 }
