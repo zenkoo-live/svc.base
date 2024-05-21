@@ -3,11 +3,11 @@ module github.com/zenkoo-live/svc.base
 go 1.22.2
 
 require (
+	github.com/alexlast/bunzap v0.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/go-micro/plugins/v4/broker/kafka v1.2.0
 	github.com/go-micro/plugins/v4/broker/nats v1.2.0
 	github.com/go-micro/plugins/v4/broker/rabbitmq v1.2.1
-	github.com/go-micro/plugins/v4/cache/redis v1.2.0
 	github.com/go-micro/plugins/v4/config/source/consul v1.2.0
 	github.com/go-micro/plugins/v4/registry/consul v1.2.1
 	github.com/go-micro/plugins/v4/registry/etcd v1.2.0
@@ -27,7 +27,6 @@ require (
 )
 
 require (
-	github.com/go-redis/redis/v8 v8.10.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
@@ -133,9 +132,6 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.2 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.2 // indirect
 	go.mongodb.org/mongo-driver v1.15.0
-	go.opentelemetry.io/otel v0.20.0 // indirect
-	go.opentelemetry.io/otel/metric v0.20.0 // indirect
-	go.opentelemetry.io/otel/trace v0.20.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/mod v0.16.0 // indirect

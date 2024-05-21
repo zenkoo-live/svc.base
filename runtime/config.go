@@ -49,8 +49,10 @@ type configCache struct {
 }
 
 type configDatabase struct {
-	Driver string `json:"driver" mapstructure:"driver"`
-	DSN    string `json:"dsn" mapstructure:"dsn"`
+	Driver            string `json:"driver" mapstructure:"driver"`
+	DSN               string `json:"dsn" mapstructure:"dsn"`
+	Debug             bool   `json:"debug" mapstructure:"debug"`
+	SlowQueryDuration int    `json:"slow_query_duration" mapstructure:"slow_query_duration"`
 }
 
 type configFiber struct {

@@ -18,11 +18,12 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
+	"github.com/alexlast/bunzap"
 	brkKafka "github.com/go-micro/plugins/v4/broker/kafka"
 	brkNats "github.com/go-micro/plugins/v4/broker/nats"
 	brkRabbitmq "github.com/go-micro/plugins/v4/broker/rabbitmq"
-	chRedis "github.com/go-micro/plugins/v4/cache/redis"
 	srcConsul "github.com/go-micro/plugins/v4/config/source/consul"
 	rgConsul "github.com/go-micro/plugins/v4/registry/consul"
 	rgEtcd "github.com/go-micro/plugins/v4/registry/etcd"
@@ -256,13 +257,11 @@ func initCache(cfg *configCache) (cache.Cache, error) {
 
 	switch strings.ToLower(cfg.Driver) {
 	case "memory":
+	case "memcached":
 	default:
-		// Redis
-		tch = chRedis.NewCache(
-			cache.WithAddress(cfg.Address),
-		)
 	}
 
+	tch = cache.DefaultCache
 	logger.Infof("cache <%s> initialized", cfg.Driver)
 
 	return tch, nil
@@ -313,6 +312,17 @@ func initDatabase(cfg *configDatabase) (*bun.DB, error) {
 	err = tdb.Ping()
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.Debug {
+		tdb.AddQueryHook(bunzap.NewQueryHook(bunzap.QueryHookOptions{
+			Logger: zaplogger.Zap(),
+		}))
+	} else if cfg.SlowQueryDuration > 0 {
+		tdb.AddQueryHook(bunzap.NewQueryHook(bunzap.QueryHookOptions{
+			Logger:       zaplogger.Zap(),
+			SlowDuration: time.Duration(cfg.SlowQueryDuration) * time.Millisecond,
+		}))
 	}
 
 	logger.Infof("database <%s> initialized", cfg.Driver)

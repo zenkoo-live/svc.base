@@ -13,7 +13,11 @@
 
 package utils
 
-import "math/rand"
+import (
+	"crypto/sha256"
+	"fmt"
+	"math/rand"
+)
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -24,6 +28,22 @@ func RandomString(length int) string {
 	}
 
 	return string(b)
+}
+
+func RandomBytes(length int) []byte {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+
+	return b
+}
+
+func CryptoPassword(original, salt string) string {
+	h := sha256.New()
+	h.Write([]byte(original + "@@" + salt))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 /*
