@@ -61,6 +61,7 @@ var (
 	fb        *fiber.App
 	fbAddress string
 	zaplogger *zlogger.Zaplog
+	env       string
 )
 
 func Init() error {
@@ -97,6 +98,9 @@ func Init() error {
 
 	cfg := &Config{}
 	config.Get(BaseConfigKey).Scan(cfg)
+
+	// Env
+	env = strings.ToLower(config.Get("env").String(""))
 
 	// Logger
 	loggerOpts := []logger.Option{
@@ -464,6 +468,18 @@ func Logger() logger.Logger {
 
 func Zap() *zap.Logger {
 	return zaplogger.Zap()
+}
+
+func Env() string {
+	return env
+}
+
+func AppendEnv() string {
+	if env != "" {
+		return "::" + env
+	}
+
+	return ""
 }
 
 func StartHTTP() {
