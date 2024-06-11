@@ -22,6 +22,11 @@ import (
 const (
 	CodeOK = 0
 	MsgOK  = "OK"
+
+	CodeBodyParseFailed = 9999401000
+	MsgBodyParseFailed  = "Parse HTTP body failed"
+	CodeValidateFailed  = 9999401001
+	MsgValidateFailed   = "Validate HTTP request failed"
 )
 
 type Envelope struct {
@@ -50,8 +55,20 @@ func (e *Envelope) SetStatus(status int) *Envelope {
 	return e
 }
 
+func (e *Envelope) SetCode(code int) *Envelope {
+	e.Code = code
+
+	return e
+}
+
 func (e *Envelope) SetMessage(msg string) *Envelope {
 	e.Message = msg
+
+	return e
+}
+
+func (e *Envelope) SetData(data interface{}) *Envelope {
+	e.Data = data
 
 	return e
 }
