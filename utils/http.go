@@ -25,8 +25,10 @@ const (
 
 	CodeBodyParseFailed = 9999401000
 	MsgBodyParseFailed  = "Parse HTTP body failed"
-	CodeValidateFailed  = 9999401001
+	CodeValidateFailed  = 9999400001
 	MsgValidateFailed   = "Validate HTTP request failed"
+	CodeAuthFailed      = 9999401001
+	MsgAuthFailed       = "Auth failed"
 )
 
 type Envelope struct {

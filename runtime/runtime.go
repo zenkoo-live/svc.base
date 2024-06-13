@@ -24,9 +24,13 @@ import (
 	brkKafka "github.com/go-micro/plugins/v4/broker/kafka"
 	brkNats "github.com/go-micro/plugins/v4/broker/nats"
 	brkRabbitmq "github.com/go-micro/plugins/v4/broker/rabbitmq"
+	chRedis "github.com/go-micro/plugins/v4/cache/redis"
 	srcConsul "github.com/go-micro/plugins/v4/config/source/consul"
 	rgConsul "github.com/go-micro/plugins/v4/registry/consul"
 	rgEtcd "github.com/go-micro/plugins/v4/registry/etcd"
+	stConsul "github.com/go-micro/plugins/v4/store/consul"
+	stRedis "github.com/go-micro/plugins/v4/store/redis"
+	redis8 "github.com/go-redis/redis/v8"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -46,6 +50,7 @@ import (
 	srcFile "go-micro.dev/v4/config/source/file"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
+	"go-micro.dev/v4/store"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -55,6 +60,7 @@ var (
 	rg        registry.Registry
 	brk       broker.Broker
 	ch        cache.Cache
+	st        store.Store
 	db        *bun.DB
 	mdb       *mongo.Client
 	rdb       *redis.Client
@@ -163,6 +169,18 @@ func Init() error {
 		ch = cache.DefaultCache
 	}
 
+	// Store
+	if cfg.Store != nil {
+		st, err = initStore(cfg.Store)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		} else {
+			store.DefaultStore = st
+		}
+	} else {
+		st = store.DefaultStore
+	}
+
 	// Database
 	if cfg.Database != nil {
 		db, err = initDatabase(cfg.Database)
@@ -261,14 +279,56 @@ func initCache(cfg *configCache) (cache.Cache, error) {
 
 	switch strings.ToLower(cfg.Driver) {
 	case "memory":
-	case "memcached":
+	case "redis":
+		// Redis
+		tch = chRedis.NewCache(
+			chRedis.WithRedisOptions(
+				redis8.UniversalOptions{
+					Addrs:    cfg.Address,
+					DB:       cfg.DB,
+					Password: cfg.Password,
+				},
+			),
+		)
 	default:
+		tch = cache.DefaultCache
 	}
 
-	tch = cache.DefaultCache
 	logger.Infof("cache <%s> initialized", cfg.Driver)
 
 	return tch, nil
+}
+
+func initStore(cfg *configStore) (store.Store, error) {
+	if cfg == nil {
+		return nil, errors.New("empty configuration")
+	}
+
+	var tst store.Store
+
+	switch strings.ToLower(cfg.Driver) {
+	case "consul":
+		// Consul
+		// TODO: DO NOT USE ME
+		tst = stConsul.NewStore()
+	case "redis":
+		// Redis
+		tst = stRedis.NewStore(
+			stRedis.WithRedisOptions(
+				redis8.UniversalOptions{
+					Addrs:    cfg.Address,
+					DB:       cfg.DB,
+					Password: cfg.Password,
+				},
+			),
+		)
+	default:
+		tst = store.DefaultStore
+	}
+
+	logger.Infof("store <%s> initialized", cfg.Driver)
+
+	return tst, nil
 }
 
 func initDatabase(cfg *configDatabase) (*bun.DB, error) {
@@ -444,6 +504,10 @@ func Broker() broker.Broker {
 
 func Cache() cache.Cache {
 	return ch
+}
+
+func Store() store.Store {
+	return st
 }
 
 func DB() *bun.DB {

@@ -44,8 +44,17 @@ type configBroker struct {
 }
 
 type configCache struct {
-	Driver  string `json:"driver" mapstructure:"driver"`
-	Address string `json:"address" mapstructure:"address"`
+	Driver   string   `json:"driver" mapstructure:"driver"`
+	Address  []string `json:"address" mapstructure:"address"`
+	Password string   `json:"password" mapstructure:"password"`
+	DB       int      `json:"db" mapstructure:"db"`
+}
+
+type configStore struct {
+	Driver   string   `json:"driver" mapstructure:"driver"`
+	Address  []string `json:"address" mapstructure:"address"`
+	Password string   `json:"password" mapstructure:"password"`
+	DB       int      `json:"db" mapstructure:"db"`
 }
 
 type configDatabase struct {
@@ -92,6 +101,7 @@ type Config struct {
 	Registry *configRegistry `json:"registry" mapstructure:"registry"`
 	Broker   *configBroker   `json:"broker" mapstructure:"broker"`
 	Cache    *configCache    `json:"cache" mapstructure:"cache"`
+	Store    *configStore    `json:"store" mapstructure:"store"`
 	Database *configDatabase `json:"database" mapstructure:"database"`
 	Mongo    *configMongo    `json:"mongo" mapstructure:"mongo"`
 	Redis    *configRedis    `json:"redis" mapstructure:"redis"`
