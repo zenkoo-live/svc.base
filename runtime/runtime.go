@@ -247,6 +247,13 @@ func initBroker(cfg *configBroker) (broker.Broker, error) {
 		)
 	}
 
+	if err := tbrk.Init(); err != nil {
+		logger.Fatalf("Broker Init error: %v", err)
+	}
+	if err := tbrk.Connect(); err != nil {
+		logger.Fatalf("Broker Connect error: %v", err)
+	}
+
 	logger.Infof("broker <%s> initialized", cfg.Driver)
 
 	return tbrk, nil
