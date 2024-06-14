@@ -44,8 +44,17 @@ type configBroker struct {
 }
 
 type configCache struct {
-	Driver  string `json:"driver" mapstructure:"driver"`
-	Address string `json:"address" mapstructure:"address"`
+	Driver   string   `json:"driver" mapstructure:"driver"`
+	Address  []string `json:"address" mapstructure:"address"`
+	Password string   `json:"password" mapstructure:"password"`
+	DB       int      `json:"db" mapstructure:"db"`
+}
+
+type configStore struct {
+	Driver   string   `json:"driver" mapstructure:"driver"`
+	Address  []string `json:"address" mapstructure:"address"`
+	Password string   `json:"password" mapstructure:"password"`
+	DB       int      `json:"db" mapstructure:"db"`
 }
 
 type configDatabase struct {
@@ -67,6 +76,13 @@ type configFiber struct {
 	DisableKeepAlive bool   `json:"disable_keep_alive" mapstructure:"disable_keep_alive"`
 	EnableSwagger    bool   `json:"enable_swagger" mapstructure:"enable_swagger"`
 	EnableStackTrace bool   `json:"enable_stack_trace" mapstructure:"enable_stack_trace"`
+}
+
+type configSession struct {
+	IDSource   string `json:"id_source" mapstructure:"id_source"`
+	IDKey      string `json:"id_key" mapstructure:"id_key"`
+	IDPrefix   string `json:"id_prefix" mapstructure:"id_prefix"`
+	Expiration int    `json:"expiration" mapstructure:"expiration"`
 }
 
 type configLogger struct {
@@ -92,10 +108,12 @@ type Config struct {
 	Registry *configRegistry `json:"registry" mapstructure:"registry"`
 	Broker   *configBroker   `json:"broker" mapstructure:"broker"`
 	Cache    *configCache    `json:"cache" mapstructure:"cache"`
+	Store    *configStore    `json:"store" mapstructure:"store"`
 	Database *configDatabase `json:"database" mapstructure:"database"`
 	Mongo    *configMongo    `json:"mongo" mapstructure:"mongo"`
 	Redis    *configRedis    `json:"redis" mapstructure:"redis"`
 	Fiber    *configFiber    `json:"fiber" mapstructure:"fiber"`
+	Session  *configSession  `json:"session" mapstructure:"session"`
 	Logger   *configLogger   `json:"logger" mapstructure:"logger"`
 }
 
