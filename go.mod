@@ -132,7 +132,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.4.1
+	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -150,7 +150,7 @@ require (
 	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

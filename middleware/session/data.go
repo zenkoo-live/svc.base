@@ -14,16 +14,18 @@
 package session
 
 import (
+	"bytes"
+	"encoding/gob"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Data struct {
 	id string
-	d  map[string]interface{}
+	d  map[string]any
 }
 
-func (d *Data) Get(key string) interface{} {
+func (d *Data) Get(key string) any {
 	if d.d != nil {
 		return d.d[key]
 	}
@@ -31,25 +33,31 @@ func (d *Data) Get(key string) interface{} {
 	return nil
 }
 
-func (d *Data) Set(key string, value interface{}) {
+func (d *Data) Set(key string, value any) {
 	if d.d == nil {
-		d.d = make(map[string]interface{})
+		d.d = make(map[string]any)
 	}
 
 	d.d[key] = value
 }
 
 func (d *Data) Marshal() []byte {
-	b, err := msgpack.Marshal(d.d)
+	b := bytes.NewBuffer(nil)
+	enc := gob.NewEncoder(b)
+	err := enc.Encode(d.d)
 	if err != nil {
 		return nil
 	}
 
-	return b
+	return b.Bytes()
 }
 
 func (d *Data) ID() string {
 	return d.id
+}
+
+func (d *Data) All() map[string]any {
+	return d.d
 }
 
 func (d *Data) Purge() {
@@ -74,8 +82,10 @@ func NewData(id string, src []byte) *Data {
 		id: id,
 	}
 	if src != nil {
-		d := make(map[string]interface{})
-		err := msgpack.Unmarshal(src, &d)
+		d := make(map[string]any)
+		b := bytes.NewBuffer(src)
+		dec := gob.NewDecoder(b)
+		err := dec.Decode(&d)
 		if err == nil {
 			ret.d = d
 		}
