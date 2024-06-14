@@ -31,6 +31,9 @@ const (
 	MsgAuthFailed       = "Auth failed"
 	CodeStorageFailed   = 9999500001
 	MsgStorageFailed    = "Storage failed"
+
+	CodeGeneralFailed = 9999999999
+	MsgGeneralFailed  = "General failed"
 )
 
 type Envelope struct {

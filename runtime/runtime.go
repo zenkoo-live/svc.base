@@ -525,12 +525,19 @@ func initSession(cfg *configSession) error {
 	}
 
 	if fb != nil {
+		r := rdb
+		if r == nil {
+			// TODO: create new redis client from config
+			r = redis.NewClient(&redis.Options{})
+		}
+
 		mw := session.New(
 			session.Config{
 				IDSource:   cfg.IDSource,
 				IDKey:      cfg.IDKey,
 				IDPrefix:   cfg.IDPrefix,
 				Expiration: time.Second * time.Duration(cfg.Expiration),
+				Storage:    r,
 			},
 		)
 		fb.Use(mw)

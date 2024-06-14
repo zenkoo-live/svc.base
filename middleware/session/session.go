@@ -14,23 +14,29 @@
 package session
 
 import (
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/zenkoo-live/svc.base/utils"
 )
 
 var (
-	IDKey   string
-	DataKey string
+	IDKey    string
+	IDSource string
+	DataKey  string
+	Storage  *redis.Client
 )
 
 func New(config ...Config) fiber.Handler {
 	cfg := configDefault(config...)
 	IDKey = cfg.IDKey
+	IDSource = strings.ToLower(cfg.IDSource)
 	DataKey = cfg.DataKey
+	Storage = cfg.Storage
 
 	return func(c *fiber.Ctx) error {
 		if cfg.Next != nil && cfg.Next(c) {
@@ -45,7 +51,7 @@ func New(config ...Config) fiber.Handler {
 		sessionID := ""
 
 		// Get session ID
-		switch strings.ToLower(cfg.IDSource) {
+		switch IDSource {
 		case "cookie":
 			// Get session id from cookie
 			sessionID = c.Cookies(cfg.IDKey)
@@ -98,11 +104,21 @@ func New(config ...Config) fiber.Handler {
 		}
 
 		// Flush session
-		src = data.Marshal()
-		err = cfg.Storage.Set(c.Context(), sessionID, src, cfg.Expiration).Err()
+		if data.d == nil || len(data.d) == 0 {
+			// Empty data
+			err = cfg.Storage.Del(c.Context(), sessionID).Err()
+		} else {
+			// Save data
+			src = data.Marshal()
+			err = cfg.Storage.Set(c.Context(), sessionID, src, cfg.Expiration).Err()
+		}
+
+		if errors.Is(err, redis.Nil) {
+			err = nil
+		}
 
 		// Return session ID
-		switch strings.ToLower(cfg.IDSource) {
+		switch IDSource {
 		case "cookie":
 			// Set header
 			cookie := &fiber.Cookie{

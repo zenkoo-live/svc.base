@@ -52,6 +52,23 @@ func (d *Data) ID() string {
 	return d.id
 }
 
+func (d *Data) Purge() {
+	d.d = nil
+}
+
+func (d *Data) Remove(c *fiber.Ctx) {
+	if Storage != nil {
+		Storage.Del(c.Context(), d.id)
+	}
+
+	d.d = nil
+	if IDSource == "cookie" {
+		c.ClearCookie(IDKey)
+	}
+
+	c.Locals(IDKey, nil)
+}
+
 func NewData(id string, src []byte) *Data {
 	ret := &Data{
 		id: id,

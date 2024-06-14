@@ -20,6 +20,7 @@ import (
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const numericBytes = "0123456789"
 
 func RandomString(length int) string {
 	b := make([]byte, length)
@@ -37,6 +38,15 @@ func RandomBytes(length int) []byte {
 	}
 
 	return b
+}
+
+func RandomNumericCode(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = numericBytes[rand.Intn(len(numericBytes))]
+	}
+
+	return string(b)
 }
 
 func CryptoPassword(original, salt string) string {
