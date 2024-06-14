@@ -29,6 +29,8 @@ const (
 	MsgValidateFailed   = "Validate HTTP request failed"
 	CodeAuthFailed      = 9999401001
 	MsgAuthFailed       = "Auth failed"
+	CodeStorageFailed   = 9999500001
+	MsgStorageFailed    = "Storage failed"
 )
 
 type Envelope struct {

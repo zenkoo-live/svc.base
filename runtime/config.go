@@ -78,6 +78,13 @@ type configFiber struct {
 	EnableStackTrace bool   `json:"enable_stack_trace" mapstructure:"enable_stack_trace"`
 }
 
+type configSession struct {
+	IDSource   string `json:"id_source" mapstructure:"id_source"`
+	IDKey      string `json:"id_key" mapstructure:"id_key"`
+	IDPrefix   string `json:"id_prefix" mapstructure:"id_prefix"`
+	Expiration int    `json:"expiration" mapstructure:"expiration"`
+}
+
 type configLogger struct {
 	Debug       bool   `json:"debug" mapstructure:"debug"`
 	Silence     bool   `json:"silence" mapstructure:"silence"`
@@ -106,6 +113,7 @@ type Config struct {
 	Mongo    *configMongo    `json:"mongo" mapstructure:"mongo"`
 	Redis    *configRedis    `json:"redis" mapstructure:"redis"`
 	Fiber    *configFiber    `json:"fiber" mapstructure:"fiber"`
+	Session  *configSession  `json:"session" mapstructure:"session"`
 	Logger   *configLogger   `json:"logger" mapstructure:"logger"`
 }
 

@@ -34,7 +34,9 @@ import (
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
 	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
@@ -43,6 +45,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/zenkoo-live/svc.base/middleware/session"
 	"github.com/zenkoo-live/svc.base/zlogger"
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/cache"
@@ -213,12 +216,20 @@ func Init() error {
 		}
 	}
 
+	// Session
+	if cfg.Session != nil {
+		err = initSession(cfg.Session)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		}
+	}
+
 	return errs
 }
 
 func initRegistry(cfg *configRegistry) (registry.Registry, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty registry configuration")
 	}
 
 	var trg registry.Registry
@@ -243,7 +254,7 @@ func initRegistry(cfg *configRegistry) (registry.Registry, error) {
 
 func initBroker(cfg *configBroker) (broker.Broker, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty broker configuration")
 	}
 
 	var tbrk broker.Broker
@@ -272,7 +283,7 @@ func initBroker(cfg *configBroker) (broker.Broker, error) {
 
 func initCache(cfg *configCache) (cache.Cache, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty cache configuration")
 	}
 
 	var tch cache.Cache
@@ -301,7 +312,7 @@ func initCache(cfg *configCache) (cache.Cache, error) {
 
 func initStore(cfg *configStore) (store.Store, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty store configuration")
 	}
 
 	var tst store.Store
@@ -333,7 +344,7 @@ func initStore(cfg *configStore) (store.Store, error) {
 
 func initDatabase(cfg *configDatabase) (*bun.DB, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty database configuration")
 	}
 
 	var (
@@ -396,7 +407,7 @@ func initDatabase(cfg *configDatabase) (*bun.DB, error) {
 
 func initMongo(cfg *configMongo) (*mongo.Client, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty mongo configuration")
 	}
 
 	var (
@@ -416,7 +427,7 @@ func initMongo(cfg *configMongo) (*mongo.Client, error) {
 
 func initRedis(cfg *configRedis) (*redis.Client, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty redis configuration")
 	}
 
 	var (
@@ -443,7 +454,7 @@ func initRedis(cfg *configRedis) (*redis.Client, error) {
 
 func initFiber(cfg *configFiber) (*fiber.App, error) {
 	if cfg == nil {
-		return nil, errors.New("empty configuration")
+		return nil, errors.New("empty fiber configuration")
 	}
 
 	fc := fiber.Config{
@@ -474,6 +485,8 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 
 	tfb.Use(
 		cors.New(),
+		favicon.New(),
+		requestid.New(),
 		fiberzap.New(
 			fiberzap.Config{
 				Logger: zaplogger.Zap(),
@@ -492,6 +505,28 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 	}
 
 	return tfb, nil
+}
+
+func initSession(cfg *configSession) error {
+	if cfg == nil {
+		return errors.New("empty session configuration")
+	}
+
+	if fb != nil {
+		mw := session.New(
+			session.Config{
+				IDSource:   cfg.IDSource,
+				IDKey:      cfg.IDKey,
+				IDPrefix:   cfg.IDPrefix,
+				Expiration: time.Second * time.Duration(cfg.Expiration),
+			},
+		)
+		fb.Use(mw)
+	}
+
+	logger.Info("fiber session initialized")
+
+	return nil
 }
 
 func Registry() registry.Registry {
