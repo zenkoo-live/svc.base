@@ -55,7 +55,7 @@ var ConfigDefault = Config{
 
 func configDefault(config ...Config) Config {
 	if len(config) < 1 {
-		return configDefault()
+		return ConfigDefault
 	}
 
 	cfg := config[0]
