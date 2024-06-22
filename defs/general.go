@@ -25,6 +25,7 @@ const (
 var (
 	EmptyUUID          = uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	PlatformMerchantID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	PlatformExclusion  = uuid.MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff")
 )
 
 /*
