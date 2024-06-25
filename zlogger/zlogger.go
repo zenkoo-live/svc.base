@@ -1,5 +1,5 @@
 /*
- * Copyright (C) LiangYu, Inc - All Rights Reserved
+ * Copyright (C) Zenkoo, Inc - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
@@ -320,6 +320,10 @@ func (l *Zaplog) Options() logger.Options {
 
 func (l *Zaplog) Zap() *zap.Logger {
 	return l.zap
+}
+
+func (l *Zaplog) Level() logger.Level {
+	return zapToLoggerLevel(l.zap.Level())
 }
 
 // NewLogger builds a new logger based on options

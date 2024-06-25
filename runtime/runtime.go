@@ -1,5 +1,5 @@
 /*
- * Copyright (C) LiangYu, Inc - All Rights Reserved
+ * Copyright (C) Zenkoo, Inc - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
