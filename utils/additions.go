@@ -16,12 +16,12 @@ package utils
 import "encoding/json"
 
 type Additions struct {
-	original map[string]any
+	original map[string]string
 }
 
-func NewAction(data json.RawMessage) *Additions {
+func NewAdditions(data json.RawMessage) *Additions {
 	a := &Additions{
-		original: make(map[string]any),
+		original: make(map[string]string),
 	}
 
 	if data != nil {
@@ -31,20 +31,28 @@ func NewAction(data json.RawMessage) *Additions {
 	return a
 }
 
-func (a *Additions) Get(key string) any {
+func (a *Additions) Get(key string) string {
 	return a.original[key]
 }
 
-func (a *Additions) Set(key string, value any) {
-	a.original[key] = value
+func (a *Additions) Set(key, value string) {
+	if key != "" {
+		if value != "" {
+			a.original[key] = value
+		} else {
+			delete(a.original, key)
+		}
+	}
 }
 
-func (a *Additions) All() map[string]any {
+func (a *Additions) All() map[string]string {
 	return a.original
 }
 
-func (a *Additions) Marshal() (json.RawMessage, error) {
-	return json.Marshal(a.original)
+func (a *Additions) Marshal() json.RawMessage {
+	o, _ := json.Marshal(a.original)
+
+	return o
 }
 
 /*
