@@ -20,12 +20,13 @@ type Additions struct {
 }
 
 func NewAdditions(data json.RawMessage) *Additions {
-	a := &Additions{
-		original: make(map[string]string),
-	}
-
+	a := &Additions{}
 	if data != nil {
 		json.Unmarshal(data, &a.original)
+	}
+
+	if a.original == nil {
+		a.original = make(map[string]string)
 	}
 
 	return a
@@ -36,6 +37,10 @@ func (a *Additions) Get(key string) string {
 }
 
 func (a *Additions) Set(key, value string) {
+	if a.original == nil {
+		a.original = make(map[string]string)
+	}
+
 	if key != "" {
 		if value != "" {
 			a.original[key] = value
