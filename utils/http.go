@@ -23,7 +23,7 @@ const (
 	CodeOK = 0
 	MsgOK  = "OK"
 
-	CodeBodyParseFailed = 9999401000
+	CodeBodyParseFailed = 9999400000
 	MsgBodyParseFailed  = "Parse HTTP body failed"
 	CodeValidateFailed  = 9999400001
 	MsgValidateFailed   = "Validate HTTP request failed"
