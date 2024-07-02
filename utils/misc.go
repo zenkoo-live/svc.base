@@ -56,6 +56,10 @@ func CryptoPassword(original, salt string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+func EnsureStatus(status, bit int64) bool {
+	return (status & (1 << bit)) != 0
+}
+
 /*
  * Local variables:
  * tab-width: 4
