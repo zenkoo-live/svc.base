@@ -41,6 +41,7 @@ type Envelope struct {
 	Status    int         `json:"status"`
 	Timestamp time.Time   `json:"timestamp"`
 	Message   string      `json:"message"`
+	RequestId string      `json:"request_id,omitempty"`
 	Data      interface{} `json:"data,omitempty"`
 }
 
@@ -76,6 +77,11 @@ func (e *Envelope) SetMessage(msg string) *Envelope {
 
 func (e *Envelope) SetData(data interface{}) *Envelope {
 	e.Data = data
+
+	return e
+}
+func (e *Envelope) SetRequestId(id string) *Envelope {
+	e.RequestId = id
 
 	return e
 }
