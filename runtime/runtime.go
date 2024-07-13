@@ -60,17 +60,18 @@ import (
 )
 
 var (
-	rg        registry.Registry
-	brk       broker.Broker
-	ch        cache.Cache
-	st        store.Store
-	db        *bun.DB
-	mdb       *mongo.Client
-	rdb       *redis.Client
-	fb        *fiber.App
-	fbAddress string
-	zaplogger *zlogger.Zaplog
-	env       string
+	rg           registry.Registry
+	brk          broker.Broker
+	ch           cache.Cache
+	st           store.Store
+	db           *bun.DB
+	mdb          *mongo.Client
+	rdb          *redis.Client
+	fb           *fiber.App
+	fbAddress    string
+	zaplogger    *zlogger.Zaplog
+	env          string
+	errorHandler fiber.ErrorHandler
 )
 
 func Init() error {
@@ -481,6 +482,7 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 		Concurrency:           cfg.Concurrency,
 		ReadBufferSize:        cfg.ReadBufferSize,
 		WriteBufferSize:       cfg.WriteBufferSize,
+		ErrorHandler:          errorHandler,
 	}
 	tfb := fiber.New(fc)
 	if cfg.EnableStackTrace {
@@ -502,6 +504,7 @@ func initFiber(cfg *configFiber) (*fiber.App, error) {
 		fiberzap.New(
 			fiberzap.Config{
 				Logger: zaplogger.Zap(),
+				Fields: []string{"latency", "status", "method", "url", "ip", "requestId", "error"},
 			},
 		),
 	)
@@ -621,6 +624,10 @@ func StopHTTP() {
 		logger.Info("stopping fiber server")
 		fb.Shutdown()
 	}
+}
+
+func SetFiberErrorHandler(handler fiber.ErrorHandler) {
+	errorHandler = handler
 }
 
 /*
